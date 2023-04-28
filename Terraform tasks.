@@ -1,0 +1,332 @@
+
+
+Terraform Tasks. 
+
+
+
+2. Create an ec2 instance using ubuntu image
+
+provider "aws" {
+region = "ap-south-1"
+access_key = "AKIAZTORPVK2IJS7I67E"
+secret_key = "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"
+}
+
+resource "aws_key_pair" "my_keypair" {
+key_name   = "id_rsa.pub"
+public_key = "${file("~/.ssh/id_rsa.pub")}"
+}
+
+resource "aws_instance" "my_instance" {
+ami           = "ami-03a933af70fa97ad2"
+instance_type = "t2.micro"
+key_name      = "${aws_key_pair.my_keypair.key_name}"
+
+}
+
+Server is created and ssh is also fine 
+
+[https://prnt.sc/CmMwGTO6YKzy](https://prnt.sc/CmMwGTO6YKzy)
+
+brogrammer@Midhuns-MacBook-Air ~ % ssh -i "id_rsa.pub.pem" ubuntu@ec2-65-2-149-11.ap-south-1.compute.amazonaws.com
+
+Warning: Identity file id_rsa.pub.pem not accessible: No such file or directory.
+
+The authenticity of host 'ec2-65-2-149-11.ap-south-1.compute.amazonaws.com (65.2.149.11)' can't be established.
+
+ED25519 key fingerprint is SHA256:YvdvNjPTItABlMuKHoTL15LdcJUBlRt1WSO2QDRdA6s.
+
+This key is not known by any other names
+
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+
+Warning: Permanently added 'ec2-65-2-149-11.ap-south-1.compute.amazonaws.com' (ED25519) to the list of known hosts.
+
+Welcome to Ubuntu 20.04.6 LTS (GNU/Linux 5.15.0-1033-aws x86_64)
+
+* Documentation:  https://help.ubuntu.com
+
+* Management:     https://landscape.canonical.com
+
+* Support:        https://ubuntu.com/advantage
+
+System information as of Fri Apr 28 06:55:52 UTC 2023
+
+System load:  0.39              Processes:             104
+
+Usage of /:   20.7% of 7.57GB   Users logged in:       0
+
+Memory usage: 23%               IPv4 address for eth0: 172.31.32.186
+
+Swap usage:   0%
+
+Expanded Security Maintenance for Applications is not enabled.
+
+0 updates can be applied immediately.
+
+Enable ESM Apps to receive additional future security updates.
+
+See https://ubuntu.com/esm or run: sudo pro status
+
+The list of available updates is more than a week old.
+
+To check for new updates run: sudo apt update
+
+The programs included with the Ubuntu system are free software;
+
+the exact distribution terms for each program are described in the
+
+individual files in /usr/share/doc/*/copyright.
+
+Ubuntu comes with ABSOLUTELY NO WARRANTY, to the extent permitted by
+
+applicable law.
+
+To run a command as administrator (user "root"), use "sudo <command>".
+
+See "man sudo_root" for details.
+
+**ubuntu@ip-172-31-32-186**:**~**$
+
+**ubuntu@ip-172-31-32-186**:**~**$
+
+1. Create an ec2 instance using default vpc and amazon linux2 ami id. Also install nginx/httpd
+
+# Set the AWS provider
+
+provider "aws" {
+region = "ap-south-1"
+access_key = ""
+secret_key = ""
+}
+resource "aws_key_pair" "my_keypair" {
+key_name   = "id_rsa.pub"
+public_key = "${file("~/.ssh/id_rsa.pub")}"
+}
+
+# Define the EC2 instance resource
+
+resource "aws_instance" "example" {
+ami           = "ami-022d03f649d12a49d"
+instance_type = "t2.micro"
+key_name      = "${aws_key_pair.my_keypair.key_name}"
+
+vpc_security_group_ids = [aws_security_group.example.id]
+
+# Install httpd on the instance
+
+user_data = <<-EOF
+#!/bin/bash
+sudo yum -y update
+sudo yum -y install httpd && sudo systemctl start httpd && sudo systemctl enable httpd
+echo "<h1>Deployed via Terraform</h1>" | sudo tee /var/www/html/index.html
+EOF
+
+}
+
+# Define the security group resource
+
+resource "aws_security_group" "example" {
+name_prefix = "example-sg"
+ingress {
+from_port   = 22
+to_port     = 22
+protocol    = "tcp"
+cidr_blocks = ["0.0.0.0/0"]
+}
+ingress {
+from_port   = 80
+to_port     = 80
+protocol    = "tcp"
+cidr_blocks = ["0.0.0.0/0"]
+}
+egress {
+from_port   = 0
+to_port     = 0
+protocol    = "-1"
+cidr_blocks = ["0.0.0.0/0"]
+}
+
+# Define the instance tags
+
+tags = {
+Name = "example-instance"
+}
+}
+
+Server is created as below and httpd is running 
+
+[https://prnt.sc/SW9-AmMjtqAN](https://prnt.sc/SW9-AmMjtqAN) 
+
+brogrammer@Midhuns-MacBook-Air ubuntu % terraform apply
+
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following symbols:
+
+- create
+
+Terraform will perform the following actions:
+
+# aws_instance.example will be created
+
+- resource "aws_instance" "example" {
+    - ami = "ami-022d03f649d12a49d"
+    - arn = (known after apply)
+    - associate_public_ip_address = (known after apply)
+    - availability_zone = (known after apply)
+    - cpu_core_count = (known after apply)
+    - cpu_threads_per_core = (known after apply)
+    - disable_api_stop = (known after apply)
+    - disable_api_termination = (known after apply)
+    - ebs_optimized = (known after apply)
+    - get_password_data = false
+    - host_id = (known after apply)
+    - host_resource_group_arn = (known after apply)
+    - iam_instance_profile = (known after apply)
+    - id = (known after apply)
+    - instance_initiated_shutdown_behavior = (known after apply)
+    - instance_state = (known after apply)
+    - instance_type = "t2.micro"
+    - ipv6_address_count = (known after apply)
+    - ipv6_addresses = (known after apply)
+    - key_name = "id_rsa.pub"
+    - monitoring = (known after apply)
+    - outpost_arn = (known after apply)
+    - password_data = (known after apply)
+    - placement_group = (known after apply)
+    - placement_partition_number = (known after apply)
+    - primary_network_interface_id = (known after apply)
+    - private_dns = (known after apply)
+    - private_ip = (known after apply)
+    - public_dns = (known after apply)
+    - public_ip = (known after apply)
+    - secondary_private_ips = (known after apply)
+    - security_groups = (known after apply)
+    - source_dest_check = true
+    - subnet_id = (known after apply)
+    - tags_all = (known after apply)
+    - tenancy = (known after apply)
+    - user_data = "d29707a9c8f181b6a777895ad4f99f9abb9ca2ae"
+    - user_data_base64 = (known after apply)
+    - user_data_replace_on_change = false
+    - vpc_security_group_ids = (known after apply)
+    }
+
+# aws_key_pair.my_keypair will be created
+
+- resource "aws_key_pair" "my_keypair" {
+    - arn = (known after apply)
+    - fingerprint = (known after apply)
+    - id = (known after apply)
+    - key_name = "id_rsa.pub"
+    - key_name_prefix = (known after apply)
+    - key_pair_id = (known after apply)
+    - key_type = (known after apply)
+    - public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQChszdDzHFPKSIIm6RyAdRn97f5TbYKQSt/GyZ36zLCIFp0NbWYhZmYvLHoLvtJvfJb5d76mmuWPA0BDdyV2FhLUpFz0N/TGbv0Vx4I2rvOMKDJzEH9pcJrjnedxfRtAsLVPrC0Ay6Ivu1UJDKgIhYoodONTRDvkCiDHZsOF1N1gO428L4fjahczItcPsg5QRFVvPZzOL7rsaAn6HhJ+CITQ9dyBJoEeSEwb27On9hE3IRSSSkCYjJPLfjBZmCe/OD6Ia5NhUmETFsNRfaKXIHKSK3xS1/PWK/C5sFpUJwGzYUM8BPKEch4+OZdut6CYTLqPAGBgxFlLVHu3/Dyso67 brogrammer@Midhuns-MacBook-Air.local"
+    - tags_all = (known after apply)
+    }
+
+# aws_security_group.example will be created
+
+- resource "aws_security_group" "example" {
+    - arn = (known after apply)
+    - description = "Managed by Terraform"
+    - egress = [
+        - {
+            - cidr_blocks = [
+                - "0.0.0.0/0",
+                ]
+            - description = ""
+            - from_port = 0
+            - ipv6_cidr_blocks = []
+            - prefix_list_ids = []
+            - protocol = "-1"
+            - security_groups = []
+            - self = false
+            - to_port = 0
+            },
+            ]
+    - id = (known after apply)
+    - ingress = [
+        - {
+            - cidr_blocks = [
+                - "0.0.0.0/0",
+                ]
+            - description = ""
+            - from_port = 22
+            - ipv6_cidr_blocks = []
+            - prefix_list_ids = []
+            - protocol = "tcp"
+            - security_groups = []
+            - self = false
+            - to_port = 22
+            },
+        - {
+            - cidr_blocks = [
+                - "0.0.0.0/0",
+                ]
+            - description = ""
+            - from_port = 80
+            - ipv6_cidr_blocks = []
+            - prefix_list_ids = []
+            - protocol = "tcp"
+            - security_groups = []
+            - self = false
+            - to_port = 80
+            },
+            ]
+    - name = (known after apply)
+    - name_prefix = "example-sg"
+    - owner_id = (known after apply)
+    - revoke_rules_on_delete = false
+    - tags = {
+        - "Name" = "example-instance"
+        }
+    - tags_all = {
+        - "Name" = "example-instance"
+        }
+    - vpc_id = (known after apply)
+    }
+
+Plan: 3 to add, 0 to change, 0 to destroy.
+
+Do you want to perform these actions?
+Terraform will perform the actions described above.
+Only 'yes' will be accepted to approve.
+
+Enter a value: yes
+
+aws_key_pair.my_keypair: Creating...
+aws_security_group.example: Creating...
+aws_key_pair.my_keypair: Creation complete after 0s [id=id_rsa.pub]
+aws_security_group.example: Creation complete after 2s [id=sg-00dfa01930ed2695d]
+aws_instance.example: Creating...
+aws_instance.example: Still creating... [10s elapsed]
+aws_instance.example: Still creating... [20s elapsed]
+aws_instance.example: Still creating... [30s elapsed]
+aws_instance.example: Creation complete after 32s [id=i-08c04e6773f804312]
+
+Apply complete! Resources: 3 added, 0 changed, 0 destroyed.
+brogrammer@Midhuns-MacBook-Air ubuntu %
+
+ssh is fine.  
+
+brogrammer@Midhuns-MacBook-Air ~ % ssh -i "id_rsa.pub.pem" [ec2-user@ec2-15-206-69-107.ap-south-1.compute.amazonaws.com](mailto:ec2-user@ec2-15-206-69-107.ap-south-1.compute.amazonaws.com)
+Warning: Identity file id_rsa.pub.pem not accessible: No such file or directory.
+The authenticity of host '[ec2-15-206-69-107.ap-south-1.compute.amazonaws.com](http://ec2-15-206-69-107.ap-south-1.compute.amazonaws.com/) (15.206.69.107)' can't be established.
+ED25519 key fingerprint is SHA256:Qtyt4Bkepebb1bw6Xij8zsWIjgujMeNbJYZPFiPhsac.
+This key is not known by any other names
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+Warning: Permanently added '[ec2-15-206-69-107.ap-south-1.compute.amazonaws.com](http://ec2-15-206-69-107.ap-south-1.compute.amazonaws.com/)' (ED25519) to the list of known hosts.
+
+```
+   __|  __|_  )
+   _|  (     /   Amazon Linux 2 AMI
+  ___|\\___|___|
+
+```
+
+[https://aws.amazon.com/amazon-linux-2/](https://aws.amazon.com/amazon-linux-2/)
+-bash: warning: setlocale: LC_CTYPE: cannot change locale (UTF-8): No such file or directory
+[ec2-user@ip-172-31-45-221 ~]$
+
+[https://prnt.sc/iF8IaLkS_aj2](https://prnt.sc/iF8IaLkS_aj2)
