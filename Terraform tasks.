@@ -8,8 +8,8 @@ Terraform Tasks.
 
 provider "aws" {
 region = "ap-south-1"
-access_key = "AKIAZTORPVK2IJS7I67E"
-secret_key = "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"
+access_key = ""
+secret_key = ""
 }
 
 resource "aws_key_pair" "my_keypair" {
